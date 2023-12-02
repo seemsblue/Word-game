@@ -14,17 +14,26 @@ import javax.swing.JToolBar;
 
 public class GameFrame extends JFrame {
 	private GamePanel gamePanel = null;		//메모
- 
+	private MainMenuPanel mainMenuPanel = null;
 	
 	public GameFrame() {
+		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setTitle("게임");
-		setSize(800,600);
-		makeMenu();
-		makeToolbar();
-
-		gamePanel = new GamePanel();
-		getContentPane().add(gamePanel,BorderLayout.CENTER);
+		setSize(1000,600);
+		setResizable(false);
+		makeMenu();		//상단 메뉴
+		makeToolbar();	//상단 툴바
 		
+		mainMenuPanel = new MainMenuPanel(this);	//게임 시작하기 위해서 전달
+		getContentPane().add(mainMenuPanel);
+		
+		setVisible(true);
+	}
+	
+	public void startGame() {
+		mainMenuPanel.setVisible(false);	//없어도 되긴 하던데 필요한가?
+		gamePanel = new GamePanel();
+		getContentPane().add(gamePanel);
 		setVisible(true);
 	}
 	
@@ -68,6 +77,5 @@ public class GameFrame extends JFrame {
 		imageBtn.setPressedIcon(pressedIcon);
 		bar.add(imageBtn);
 		bar.setFloatable(false);
-		
 	}
 }

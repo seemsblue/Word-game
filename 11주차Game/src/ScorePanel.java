@@ -18,7 +18,10 @@ public class ScorePanel extends JPanel{
 		scoreLabel.setText(Integer.toString(score));
 	}
 	public void decrease(int i) {
-		score += i;
+		score = score - i;
+		if(score<0)
+			score=0;
 		scoreLabel.setText(Integer.toString(score));
 	}
+	
 }
