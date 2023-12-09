@@ -4,6 +4,7 @@ import java.io.FileReader;
 import java.util.Scanner;
 import java.util.Vector;
 
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 

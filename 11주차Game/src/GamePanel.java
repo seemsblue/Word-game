@@ -17,12 +17,14 @@ public class GamePanel extends JPanel {
 		JSplitPane hPane = new JSplitPane();	//나누기
 		hPane.setOrientation(JSplitPane.HORIZONTAL_SPLIT);	//가로 2열로 만듦
 		hPane.setDividerLocation(800);
+		hPane.setDividerSize(0);
 		add(hPane);
 		
 		
 		JSplitPane vPane = new JSplitPane();
 		vPane.setOrientation(JSplitPane.VERTICAL_SPLIT);	//2행으로 만듦
 		vPane.setDividerLocation(300);
+		vPane.setDividerSize(0);
 		
 		hPane.setRightComponent(vPane);		//나눈 것의 오른쪽은 vPane
 		
