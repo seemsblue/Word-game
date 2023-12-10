@@ -94,6 +94,6 @@ public class ScorePanel extends JPanel{
 	}
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
-		g.drawImage(hpImage,6,40,160,160,this);
+		g.drawImage(hpImage,10,40,160,160,this);
 	}
 }

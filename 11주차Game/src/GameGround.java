@@ -11,6 +11,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.FileWriter;
+import java.io.IOException;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -36,6 +40,7 @@ public class GameGround extends JPanel {
 	private int wordSpeed = 500;
 	private int wordFrequency = 5;		//int에 한번 단어 추락
 	private TextSource textSource = null;
+	private GameFrame gameFrame = null;
 	private JLabel player = new JLabel();	//플레이어
 	private ImageIcon [] playerImageIcon = { //플레이어 이미지 객체 배열
 			new ImageIcon("images/배.png"),
@@ -50,9 +55,20 @@ public class GameGround extends JPanel {
 			new ImageIcon("images/배경3.png")
 	};
 	private Image backgroundImage = backgroundImageIcon[0].getImage();
-	private Point playerPoint = new Point(400,350);	//플레이어 위치
+	ImageIcon gameOverIcon = new ImageIcon("images/gameover.png");
+	ImageIcon[] exitIcon = {
+			new ImageIcon("images/exit.png"),
+			new ImageIcon("images/exit2.png")
+	};
+	ImageIcon[] mainIcon = {
+			new ImageIcon("images/main.png"),
+			new ImageIcon("images/main2.png")
+	};
+	Image gameOverImg = gameOverIcon.getImage();
+	Image exitImg = exitIcon[0].getImage();
+	Image mainImg = mainIcon[0].getImage();
+	private Point playerPoint = new Point(400,390);	//플레이어 위치
 	private boolean playerPerquisite[] = {false,false,false,false,false,false,false};	//7개 능력
-	
 	private class MyDialog extends JDialog{
 		String perquisite[] = {"속도 증가","흡혈","보호막", "'새' 친구" ,"거대화","방독면","미니미"};
 		public MyDialog(JFrame frame, String title) {
@@ -77,14 +93,17 @@ public class GameGround extends JPanel {
 			}
 		};
 	}
+	private boolean gameOverFlag=false;
 	
-	public GameGround(ScorePanel scorePanel, TextSource textSource) {
+	public GameGround(ScorePanel scorePanel, TextSource textSource, GameFrame gameFrame) {
+		this.gameFrame = gameFrame;
 		this.scorePanel = scorePanel;
 		this.textSource = textSource;
 		setLayout(null);
 		scorePanel.getGameInfo(this);
-		textInput.setSize(300, 20);		//단어 입력칸
-		textInput.setLocation(250, 470);
+		textInput.setSize(300, 30);		//단어 입력칸
+		textInput.setLocation(250, 485);
+		textInput.setFont(new Font("궁서체",Font.BOLD,20));
 		add(textInput);
 		textInput.addActionListener(new ActionListener() {	//단어 정답 입력받는 리스너 추가
 			@Override
@@ -113,7 +132,7 @@ public class GameGround extends JPanel {
 		
 		for (int i = 0; i < wordArr.length; i++) {	
 	        wordArr[i] = new WordArr();
-	        wordArr[i].wordLabel.setSize(60,20);
+	        wordArr[i].wordLabel.setSize(100,20);
 	        wordArr[i].wordLabel.setLocation(20,20);
 	        wordArr[i].wordLabel.setVisible(false);
 	        wordArr[i].wordLabel.setOpaque(true); //Opaque값을 true로 미리 설정해 주어야 배경색이 적용된다.
@@ -141,6 +160,11 @@ public class GameGround extends JPanel {
 		super.paintComponent(g);
 		g.drawImage(backgroundImage,0,0,getWidth(),getHeight(),this);
 		g.drawImage(playerImage,playerPoint.x,playerPoint.y,100,70,this);
+		if(gameOverFlag==true) {
+			g.drawImage(gameOverImg,55,20,690,370,this);
+			g.drawImage(exitImg,150,300,120,100,this);
+			g.drawImage(mainImg,550,300,120,100,this);
+		}
 	}
 	/**떨어지는 단어*/
 	class WordArr {	 
@@ -151,13 +175,13 @@ public class GameGround extends JPanel {
 		public void startDropWord() {	//단어 출발
 			String word = textSource.next();
 			wordLabel.setText(word);
-			wordLabel.setSize(100,20);
+			//wordLabel.setSize(100,20);
 			wordLabel.setLocation((int)(Math.random()*700)+10,20);	//10부터 729까지 x중에 출현
 			wordLabel.setVisible(true);
 		}
 		public void fallWord() {
 			wordLabel.setLocation(wordLabel.getX(), wordLabel.getY()+10);
-			if(wordLabel.getY()>410) {	// 땅바닥에 닿으면
+			if(wordLabel.getY()>420) {	// 땅바닥에 닿으면
 				nextWord();
 			}
 		}
@@ -201,7 +225,7 @@ public class GameGround extends JPanel {
 			while(true)
 			{
 				for(int i=0;i<wordArr.length;i++) {
-					if(wordArr[i].wordLabel.getY()>340) {	//플레이어와 부딪힐 수 있는 높이일 때 충돌했다면
+					if(wordArr[i].wordLabel.getY()>375) {	//플레이어와 부딪힐 수 있는 높이일 때 충돌했다면
 						if(wordArr[i].wordLabel.getX()-playerPoint.x <89 && wordArr[i].wordLabel.getX()-playerPoint.x > -91) {	//88에서 -90
 							if (playerStar==false) {
 								scorePanel.decrease(10);	//닿으면 10점 감소
@@ -330,8 +354,126 @@ public class GameGround extends JPanel {
 	
 	/**Hp가 0이 될 경우 모든 쓰레드 중지하고 점수 표기,다시하기 또는 종료*/
 	public void gameOver(int score) {
+		int finalScore = time*10 + score;
+		String sc;
+		sc = Integer.toString(finalScore);
+		gameOverFlag=true;
 		threadFlag = true;
+		for (int i = 0; i < wordArr.length; i++) {	
+	        wordArr[i].wordLabel.setSize(0, 0);;;
+		}
+		textInput.setVisible(false);
+		JLabel label = new JLabel("침몰했습니다...");
+		label.setSize(150,40);
+		label.setFont(new Font("고딕",Font.BOLD+Font.ITALIC,22));
+		label.setLocation(320,150);
+		add(label);
+		JLabel scoreLabel = new JLabel(Integer.toString(finalScore)+"점 (생존시간 보너스 추가됨 +"+Integer.toString(time*10)+")");
+		scoreLabel.setSize(330,40);
+		scoreLabel.setFont(new Font("고딕",Font.BOLD+Font.ITALIC,17));
+		scoreLabel.setLocation(243,180);
+		add(scoreLabel);
+		JLabel b = new JLabel("이름 :");
+		b.setSize(55,30);
+		b.setForeground(Color.white);
+		b.setFont(new Font("궁서체", Font.BOLD, 17));
+		b.setLocation(305,273);
+		add(b);
+		JLabel label2 = new JLabel("기록 입력 완료!");
+		label2.setSize(355,265);
+		label2.setFont(new Font("궁서체",Font.BOLD,18));
+		label2.setLocation(373,150);
+		label2.setVisible(false);
+		label2.setForeground(Color.white);
 		playerImage = playerImageIcon[3].getImage();
+		
+		JTextField nameTextField = new JTextField(15);	//플레이어 랭킹 기록입력 부분
+		nameTextField.setFocusable(true);
+		nameTextField.setSize(130, 30);
+		nameTextField.setFont(new Font("고딕",Font.BOLD+Font.ITALIC,20));
+		nameTextField.setLocation(360,275);
+		nameTextField.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JTextField tf = (JTextField)e.getSource();
+				String name = tf.getText();
+				try {
+					FileWriter fout = new FileWriter("rank.txt", true);	
+					fout.write(name,0,name.length());
+					fout.write("\r\n",0,2);
+					fout.write(sc+"\r\n");	//이렇게도 됨
+					fout.close();
+					nameTextField.setVisible(false);
+					nameTextField.setSize(0,0);
+					nameTextField.setFocusable(false);
+					label2.setVisible(true);
+				} catch (IOException err) {
+					err.printStackTrace();
+					System.out.println("유저 이름 입력 중 에러 발생");
+				}
+			}
+		});;
+		add(label2);
+		add(nameTextField);
+		JButton exitBtn = new JButton();
+		exitBtn.setSize(120,80);
+		exitBtn.setLocation(150,300);	//표지판 머리부분만
+		exitBtn.setOpaque(false);
+        exitBtn.setContentAreaFilled(false);	//밑 3줄은 버튼을 안보이게 각각 테두리 배경요소 투명하게 만든거임
+		exitBtn.setEnabled(true);
+		exitBtn.setBorderPainted(false);
+		exitBtn.addMouseListener(new MouseAdapter() {	//이미지에는 마우스어댑터가 안들어가고,라벨은 이미지 사이즈가 조절이 안되니까 투명버튼 만들고 걔가 이미지까지 다 조절하게
+            @Override
+            public void mouseEntered(MouseEvent e) {
+            	exitImg = exitIcon[1].getImage();	//롤오버도 투명버튼이 대신 수행
+            	repaint();
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+            	exitImg = exitIcon[0].getImage();	//롤아웃
+            	repaint();
+            }
+        });
+		exitBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) { 
+                System.out.println("나가기 눌림");
+                System.exit(0);
+            }
+        });
+		add(exitBtn);
+		JButton mainBtn = new JButton();	//메인메뉴버튼도 같음
+		mainBtn.setSize(120,80);
+		mainBtn.setLocation(550,300);	
+		mainBtn.setOpaque(false);
+		mainBtn.setContentAreaFilled(false);	//밑 3줄은 버튼을 안보이게 각각 테두리 배경요소 투명하게 만든거임
+		mainBtn.setEnabled(true);
+		mainBtn.setBorderPainted(false);
+		mainBtn.addMouseListener(new MouseAdapter() {	//이미지에는 마우스어댑터가 안들어가고,라벨은 이미지 사이즈가 조절이 안되니까 투명버튼 만들고 걔가 이미지까지 다 조절하게
+            @Override
+            public void mouseEntered(MouseEvent e) {
+            	mainImg = mainIcon[1].getImage();
+            	repaint();
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+            	mainImg = mainIcon[0].getImage();
+            	repaint();
+            }
+        });
+		mainBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) { 
+                System.out.println("메인메뉴 눌림");
+                gameFrame.resetGame();
+            }
+        });
+		add(mainBtn);
+		for (int i = 0; i < wordArr.length; i++) {	
+	        wordArr[i].wordLabel.setSize(0, 0);;;
+		}
 		repaint();
 	}
 }
